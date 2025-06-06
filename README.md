@@ -1,4 +1,4 @@
-# `present.nvim`
+# present.nvim
 
 Hey, this is a simple plugin for presenting markdown files in Neovim.
 
