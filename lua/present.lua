@@ -51,17 +51,11 @@ local parse_slides = function(lines)
   return slides
 end
 
-M.start_presentation = function(opts)
-  opts = opts or {}
-  opts.bufnr = opts.bufnr or 0
-
-  local lines = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
-  local parsed_slides = parse_slides(lines)
-
+local create_window_config = function()
   local width = vim.o.columns
   local height = vim.o.lines
-  --- @type vim.api.keyset.win_config[]
-  local windows = {
+
+  return {
     background = {
       relative = "editor",
       width = width,
@@ -93,7 +87,17 @@ M.start_presentation = function(opts)
     },
     -- footer = {},
   }
+end
 
+M.start_presentation = function(opts)
+  opts = opts or {}
+  opts.bufnr = opts.bufnr or 0
+
+  local lines = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
+  local parsed_slides = parse_slides(lines)
+  local slide_index = 1
+
+  local windows = create_window_config()
   local background_floating_window = create_floating_window(windows.background)
   local header_floating_window = create_floating_window(windows.header)
   local body_floating_window = create_floating_window(windows.body)
@@ -105,12 +109,11 @@ M.start_presentation = function(opts)
     local slide = parsed_slides.slides[idx]
 
     local title = slide.title
-    local padding = string.rep(" ", math.floor((width - #title) / 2))
+    local padding = string.rep(" ", math.floor((vim.o.columns - #title) / 2))
     vim.api.nvim_buf_set_lines(header_floating_window.buf, 0, -1, false, { padding .. title })
     vim.api.nvim_buf_set_lines(body_floating_window.buf, 0, -1, false, slide.body)
   end
 
-  local slide_index = 1
   vim.keymap.set("n", "n", function()
     slide_index = math.min(slide_index + 1, #parsed_slides.slides)
     set_slide_content(slide_index)
@@ -150,10 +153,27 @@ M.start_presentation = function(opts)
     end,
   })
 
+  vim.api.nvim_create_autocmd("VimResized", {
+    group = vim.api.nvim_create_augroup("PresentationResize", { clear = true }),
+    callback = function()
+      if not vim.api.nvim_win_is_valid(body_floating_window.win) or body_floating_window.win == nil then
+        return
+      end
+
+      local new_windows = create_window_config()
+      vim.api.nvim_win_set_config(background_floating_window.win, new_windows.background)
+      vim.api.nvim_win_set_config(header_floating_window.win, new_windows.header)
+      vim.api.nvim_win_set_config(body_floating_window.win, new_windows.body)
+
+      -- Recalculate slide content
+      set_slide_content(slide_index)
+    end,
+  })
+
   set_slide_content(slide_index) -- Set the initial slide content
 end
 
--- M.start_presentation { bufnr = 14 }
+-- M.start_presentation { bufnr = 10 }
 
 -- vim.print(parse_slides {
 --   "# Hello",
