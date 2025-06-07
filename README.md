@@ -8,6 +8,10 @@ Hey, this is a simple plugin for presenting markdown files in Neovim.
 require("present").start_presentation {}
 ```
 
+OR
+
+`:PresentationStart`
+
 ## Shortcuts
 
 - Use `n`, and 'p' to navigate through the slides.
