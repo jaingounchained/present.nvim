@@ -222,4 +222,6 @@ end
 --   "this is the second slide",
 -- })
 
+M._parse_slides = parse_slides
+
 return M
