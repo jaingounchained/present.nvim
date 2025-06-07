@@ -48,8 +48,6 @@ local parse_slides = function(lines)
     else
       table.insert(current_slide.body, line)
     end
-    -- Continue adding lines to the current slide
-    table.insert(current_slide, line)
   end
   table.insert(slides.slides, current_slide) -- Add the last slide
 
